@@ -74,10 +74,10 @@ struct Dashboard: View {
             List(Panel.allCases, selection: $selected) { item in Label(item.rawValue, systemImage: item.icon).tag(item) }
                 .navigationTitle("On Steroids")
                 .safeAreaInset(edge: .bottom) {
-                    VStack(alignment: .leading, spacing: 5) {
+                    if !textSize.isAccessibilitySize { VStack(alignment: .leading, spacing: 5) {
                         Text("YOUR IPAD WORKSPACE").font(.caption2.bold())
                         Text("Local-first · v0.2").font(.caption).foregroundStyle(.secondary)
-                    }.padding()
+                    }.padding() }
                 }
         } detail: {
             ScrollView {
