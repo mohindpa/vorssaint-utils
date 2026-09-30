@@ -15,6 +15,7 @@ struct Dashboard: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var textSize
     @AppStorage("accent") private var accent = "Mint"
     @AppStorage("appearance") private var appearance = "System"
     @AppStorage("showIsland") private var showIsland = true
@@ -25,6 +26,8 @@ struct Dashboard: View {
     @State private var selected: Panel? = .overview
     @State private var selectedNote: UUID?
     @State private var command = ""
+    @State private var searchQuery = ""
+    @FocusState private var commandFocused: Bool
     @State private var showCommand = false
     @State private var expanded = false
     @State private var filter = ""
@@ -104,7 +107,7 @@ struct Dashboard: View {
         navigation
         .tint(tint)
         .preferredColorScheme(appearance == "System" ? nil : appearance == "Dark" ? .dark : .light)
-        .sheet(isPresented: $showCommand) { commandBar }
+        .sheet(isPresented: $showCommand) { commandBar.onAppear { command = ""; searchQuery = ""; commandFocused = true }.onDisappear { commandFocused = false } }
         .fileExporter(isPresented: $exporting, document: WorkspaceDocument(workspace: store.workspace), contentType: .json, defaultFilename: "iPad-on-Steroids-workspace") { result in
             switch result { case .success: store.message = "Backup exported."; case .failure(let error): store.message = "Export failed: \(error.localizedDescription)" }
         }
@@ -139,11 +142,13 @@ struct Dashboard: View {
             HStack(spacing: 8) {
                 ForEach(pinnedPanels) { item in
                     Button { selected = item } label: {
-                        Label(item.rawValue, systemImage: item.icon).font(.callout.bold()).padding(.horizontal, 14).frame(minHeight: 44)
-                            .background(selected == item ? tint.opacity(0.18) : .clear, in: Capsule())
+                        Group {
+                            if textSize.isAccessibilitySize { Image(systemName: item.icon).font(.system(size: 26)).frame(width: 56, height: 56) }
+                            else { Label(item.rawValue, systemImage: item.icon).font(.callout.bold()).padding(.horizontal, 14).frame(minHeight: 44) }
+                        }.background(selected == item ? tint.opacity(0.18) : .clear, in: Capsule())
                     }.buttonStyle(.plain).accessibilityLabel("Open \(item.rawValue)")
                 }
-                Button { showCommand = true } label: { Image(systemName: "command").frame(width: 44, height: 44) }.accessibilityLabel("Search workspace")
+                Button { showCommand = true } label: { Image(systemName: "command").font(.system(size: 24)).frame(width: 56, height: 56) }.accessibilityLabel("Search workspace")
             }.padding(10).glassSurface(corner: 32, nativeGlass: true).padding(.horizontal, 18).padding(.vertical, 12)
         }.frame(maxWidth: 820).frame(maxWidth: .infinity)
     }
@@ -162,7 +167,7 @@ struct Dashboard: View {
     private var overview: some View {
         VStack(alignment: .leading, spacing: 24) {
             if showTelemetry {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 180))], spacing: 16) {
+                LazyVGrid(columns: textSize.isAccessibilitySize ? [GridItem(.flexible())] : [GridItem(.adaptive(minimum: 180))], spacing: 16) {
                     metric("Battery", value: store.battery < 0 ? "Unavailable" : "\(Int(store.battery * 100))%", icon: "battery.100percent")
                     metric("Thermal state", value: store.thermal, icon: "thermometer.medium")
                     metric("Available storage", value: store.storage, icon: "internaldrive")
@@ -174,7 +179,7 @@ struct Dashboard: View {
                 Text("\(store.workspace.notes.count) notes · \(store.workspace.shelf.count) shelf items · \(store.workspace.tasks.filter { !$0.done }.count) tasks remaining").foregroundStyle(.secondary)
                 if let task = store.workspace.tasks.first(where: { !$0.done }) { Label(task.title, systemImage: "circle").lineLimit(3) }
             }
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 220))], spacing: 16) {
+            LazyVGrid(columns: textSize.isAccessibilitySize ? [GridItem(.flexible())] : [GridItem(.adaptive(minimum: 220))], spacing: 16) {
                 ForEach(Panel.allCases.filter { $0 != .overview && $0 != .settings }) { item in
                     Button { selected = item } label: {
                         VStack(alignment: .leading, spacing: 12) {
@@ -252,7 +257,7 @@ struct Dashboard: View {
                 }.buttonStyle(.borderedProminent).disabled(!canAddLauncher)
                 Text("Create the Shortcut first. It may set Focus, brightness or open an app, depending on supported actions and permissions.").font(.caption).foregroundStyle(.secondary)
             }
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 220))], spacing: 16) {
+            LazyVGrid(columns: textSize.isAccessibilitySize ? [GridItem(.flexible())] : [GridItem(.adaptive(minimum: 220))], spacing: 16) {
                 ForEach(store.workspace.launchers) { launcher in
                     ToolCard(title: launcher.name, icon: "bolt.fill") {
                         Text(launcher.shortcut).font(.caption).foregroundStyle(.secondary)
@@ -325,7 +330,7 @@ struct Dashboard: View {
     private var commandBar: some View {
         NavigationStack {
             List {
-                TextField("Find tools, notes, shelf items or routines", text: $command).accessibilityIdentifier("command-search").textInputAutocapitalization(.never).autocorrectionDisabled()
+                TextField("Find tools, notes, shelf items or routines", text: $command).accessibilityIdentifier("command-search").focused($commandFocused).textInputAutocapitalization(.never).autocorrectionDisabled()
                 if let result = CommandUtility.evaluate(command) {
                     Section(result.title) { Button(result.value) { store.copy(result.value); showCommand = false } }
                 }
@@ -358,7 +363,11 @@ struct Dashboard: View {
                     ForEach(store.workspace.launchers.filter { matches($0.name) || matches($0.shortcut) }) { launcher in Button(launcher.name) { run(launcher); showCommand = false } }
                 }
             }.navigationTitle("Command bar").toolbar { Button("Done") { showCommand = false } }
+                .task(id: command) {
+                    do { try await Task.sleep(for: .milliseconds(150)); guard !Task.isCancelled else { return }; searchQuery = command }
+                    catch { /* A newer query owns the search. */ }
+                }
         }.presentationDetents([.medium, .large])
     }
-    private func matches(_ value: String) -> Bool { command.isEmpty || value.localizedCaseInsensitiveContains(command) }
+    private func matches(_ value: String) -> Bool { searchQuery.isEmpty || value.localizedCaseInsensitiveContains(searchQuery) }
 }

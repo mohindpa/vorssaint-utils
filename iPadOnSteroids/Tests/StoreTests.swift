@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #if canImport(UIKit)
 import XCTest
+import UIKit
 @testable import iPadOnSteroids
 
 final class StoreTests: XCTestCase {
@@ -40,6 +41,24 @@ final class StoreTests: XCTestCase {
         await MainActor.run { store.flush() }
         try? await Task.sleep(for: .milliseconds(500))
         try? FileManager.default.removeItem(at: url.deletingLastPathComponent())
+    }
+}
+final class OCRTests: XCTestCase {
+    func testRecognitionOfActualRenderedImage() async throws {
+        let data = try await MainActor.run {
+            let image = UIGraphicsImageRenderer(size: CGSize(width: 800, height: 200)).image { context in
+                context.cgContext.setFillColor(UIColor.white.cgColor)
+                context.cgContext.fill(CGRect(x: 0, y: 0, width: 800, height: 200))
+                ("HELLO IPAD" as NSString).draw(at: CGPoint(x: 40, y: 60), withAttributes: [.font: UIFont.boldSystemFont(ofSize: 64), .foregroundColor: UIColor.black])
+            }
+            return try XCTUnwrap(image.pngData())
+        }
+        let text = try await Task.detached { try OCRService.recognize(data) }.value
+        XCTAssertTrue(text.uppercased().contains("HELLO IPAD"), text)
+    }
+    func testUnreadableAndOversizedImagesAreRejected() {
+        XCTAssertThrowsError(try OCRService.recognize(Data("not an image".utf8)))
+        XCTAssertThrowsError(try OCRService.recognize(Data(repeating: 0, count: 40 * 1024 * 1024 + 1)))
     }
 }
 #endif

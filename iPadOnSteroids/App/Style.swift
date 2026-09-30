@@ -37,7 +37,7 @@ struct GlassSurface: ViewModifier {
     var nativeGlass = false
     func body(content: Content) -> some View {
         surface(content)
-            .overlay { RoundedRectangle(cornerRadius: corner).strokeBorder(scheme == .dark ? .white.opacity(0.14) : .black.opacity(0.08), lineWidth: 1) }
+            .overlay { RoundedRectangle(cornerRadius: corner).strokeBorder(scheme == .dark ? .white.opacity(0.14) : .black.opacity(0.08), lineWidth: 1).allowsHitTesting(false) }
             .shadow(color: .black.opacity(opaque ? 0 : 0.12), radius: 18, y: 8)
     }
     @ViewBuilder private func surface(_ content: Content) -> some View {

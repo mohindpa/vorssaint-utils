@@ -44,7 +44,7 @@ struct NotesView: View {
                 Button { addNote() } label: { Label("New note", systemImage: "plus") }.buttonStyle(.borderedProminent).keyboardShortcut("n", modifiers: [.command, .shift]).disabled(store.workspace.notes.count >= 500)
             }
             ScrollView(.horizontal) {
-                HStack(spacing: 10) {
+                LazyHStack(spacing: 10) {
                     ForEach(store.workspace.notes) { note in
                         Button { selectedID = note.id } label: {
                             Label(note.title.isEmpty ? "Untitled" : note.title, systemImage: "note.text").lineLimit(1).padding(.vertical, 8).padding(.horizontal, 14)
@@ -60,8 +60,8 @@ struct NotesView: View {
                     TextField("Note title", text: noteBinding(store.workspace.notes[i].id, title: true)).font(.title2.bold())
                     TextEditor(text: noteBinding(store.workspace.notes[i].id, title: false)).frame(minHeight: 320).scrollContentBackground(.hidden).accessibilityLabel("Note text").accessibilityIdentifier("note-body")
                     ViewThatFits {
-                        HStack { noteActions(i) }
-                        VStack(alignment: .leading) { noteActions(i) }
+                        HStack { noteActions(store.workspace.notes[i]) }
+                        VStack(alignment: .leading) { noteActions(store.workspace.notes[i]) }
                     }
                     Text(store.saving ? "Saving…" : store.saveError == nil ? "Saved locally" : "Save needs attention").font(.caption).foregroundStyle(.secondary)
                 }
@@ -73,10 +73,10 @@ struct NotesView: View {
             Button("Delete note", role: .destructive) { store.workspace.notes.removeAll { $0.id == deleteID } }
         }
     }
-    @ViewBuilder private func noteActions(_ i: Int) -> some View {
-        Button("Save to shelf") { store.capture(store.workspace.notes[i].text) }.buttonStyle(.bordered)
-        ShareLink(item: store.workspace.notes[i].text).buttonStyle(.bordered)
-        Button("Delete", role: .destructive) { deleteID = store.workspace.notes[i].id; confirmDelete = true }.buttonStyle(.bordered)
+    @ViewBuilder private func noteActions(_ note: NoteItem) -> some View {
+        Button("Save to shelf") { store.capture(store.workspace.notes.first(where: { $0.id == note.id })?.text ?? "") }.buttonStyle(.bordered)
+        ShareLink(item: note.text).buttonStyle(.bordered)
+        Button("Delete", role: .destructive) { deleteID = note.id; confirmDelete = true }.buttonStyle(.bordered)
     }
     private func noteBinding(_ id: UUID, title: Bool) -> Binding<String> {
         Binding(get: {

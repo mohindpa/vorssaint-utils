@@ -7,7 +7,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: ipad-validation-${{ github.ref }}
+  group: ipad-validation-${{ github.ref }}-${{ github.sha }}
   cancel-in-progress: true
 jobs:
   native:
@@ -50,18 +50,25 @@ jobs:
           with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
               f.write('id=' + device['udid'] + '\n')
           PY
-      - name: Build and test native iPad app
+      - name: Compile simulator app and test bundles
         env:
           SIMULATOR_ID: ${{ steps.simulator.outputs.id }}
-        run: |
-          xcodebuild -project iPadOnSteroids.xcodeproj -scheme iPadOnSteroids -destination "platform=iOS Simulator,id=$SIMULATOR_ID" -derivedDataPath .build-native -resultBundlePath TestResults.xcresult test CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES
-      - name: Build optimized device binary without signing
-        run: xcodebuild -project iPadOnSteroids.xcodeproj -scheme iPadOnSteroids -configuration Release -destination 'generic/platform=iOS' -derivedDataPath .build-device build CODE_SIGNING_ALLOWED=NO
+        run: python3 scripts/run_native.py build
+      - name: Build optimized unsigned device binary
+        run: python3 scripts/run_native.py device
+      - name: Run native unit and OCR tests
+        env:
+          SIMULATOR_ID: ${{ steps.simulator.outputs.id }}
+        run: python3 scripts/run_native.py unit
+      - name: Run native interaction and accessibility tests
+        env:
+          SIMULATOR_ID: ${{ steps.simulator.outputs.id }}
+        run: python3 scripts/run_native.py ui
       - name: Export simulator screenshots
         if: always()
         run: |
-          if [ -d TestResults.xcresult ]; then
-            xcrun xcresulttool export attachments --path TestResults.xcresult --output-path TestAttachments
+          if [ -f UIResults.xcresult/Info.plist ]; then
+            xcrun xcresulttool export attachments --path UIResults.xcresult --output-path TestAttachments
           fi
       - name: Upload simulator screenshots
         if: always()
@@ -75,5 +82,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ipad-native-results-${{ matrix.runner }}
-          path: iPadOnSteroids/TestResults.xcresult
+          path: |
+            iPadOnSteroids/UnitResults.xcresult
+            iPadOnSteroids/UIResults.xcresult
           if-no-files-found: ignore

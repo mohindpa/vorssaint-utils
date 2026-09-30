@@ -35,25 +35,7 @@ struct ImageTextView: View {
         do {
             guard let data = try await selected.loadTransferable(type: Data.self) else { throw CocoaError(.fileReadCorruptFile) }
             try Task.checkCancellation()
-            guard data.count <= 40 * 1024 * 1024 else { throw WorkspaceError.tooLarge }
-            let worker = Task.detached(priority: .userInitiated) {
-                try Task.checkCancellation()
-                return try autoreleasepool {
-                    guard let source = CGImageSourceCreateWithData(data as CFData, nil),
-                          let image = CGImageSourceCreateThumbnailAtIndex(source, 0, [
-                            kCGImageSourceCreateThumbnailFromImageAlways: true,
-                            kCGImageSourceCreateThumbnailWithTransform: true,
-                            kCGImageSourceThumbnailMaxPixelSize: 4096,
-                            kCGImageSourceShouldCacheImmediately: true
-                          ] as CFDictionary) else { throw CocoaError(.fileReadCorruptFile) }
-                    try Task.checkCancellation()
-                    let request = VNRecognizeTextRequest()
-                    request.recognitionLevel = .accurate; request.usesLanguageCorrection = true
-                    try VNImageRequestHandler(cgImage: image).perform([request])
-                    try Task.checkCancellation()
-                    return (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }.joined(separator: "\n")
-                }
-            }
+            let worker = Task.detached(priority: .userInitiated) { try OCRService.recognize(data) }
             let output = try await withTaskCancellationHandler { try await worker.value } onCancel: { worker.cancel() }
             try Task.checkCancellation()
             guard photo == selected else { return }
@@ -61,5 +43,31 @@ struct ImageTextView: View {
             if output.isEmpty { store.message = "No text found. Try a sharper image." }
         } catch is CancellationError { /* Selection changed or view closed. */ }
         catch { if !Task.isCancelled { store.message = "Could not read the image: \(error.localizedDescription)" } }
+    }
+}
+
+enum ImageReadError: LocalizedError {
+    case tooLarge
+    var errorDescription: String? { "Choose an image smaller than 40 MB." }
+}
+enum OCRService {
+    static func recognize(_ data: Data) throws -> String {
+        guard data.count <= 40 * 1024 * 1024 else { throw ImageReadError.tooLarge }
+        try Task.checkCancellation()
+        return try autoreleasepool {
+            guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+                  let image = CGImageSourceCreateThumbnailAtIndex(source, 0, [
+                    kCGImageSourceCreateThumbnailFromImageAlways: true,
+                    kCGImageSourceCreateThumbnailWithTransform: true,
+                    kCGImageSourceThumbnailMaxPixelSize: 4096,
+                    kCGImageSourceShouldCacheImmediately: true
+                  ] as CFDictionary) else { throw CocoaError(.fileReadCorruptFile) }
+            try Task.checkCancellation()
+            let request = VNRecognizeTextRequest()
+            request.recognitionLevel = .accurate; request.usesLanguageCorrection = true
+            try VNImageRequestHandler(cgImage: image).perform([request])
+            try Task.checkCancellation()
+            return (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }.joined(separator: "\n")
+        }
     }
 }

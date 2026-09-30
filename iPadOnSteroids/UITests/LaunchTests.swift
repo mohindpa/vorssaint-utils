@@ -44,7 +44,14 @@ final class LaunchTests: XCTestCase {
         let app = launch()
         XCUIDevice.shared.orientation = .landscapeLeft
         defer { XCUIDevice.shared.orientation = .portrait }
-        XCTAssertTrue(app.buttons["open-command"].firstMatch.waitForExistence(timeout: 10))
+        let rotated = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            app.windows.firstMatch.frame.width > app.windows.firstMatch.frame.height
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [rotated], timeout: 15), .completed)
+        let command = app.buttons["open-command"].firstMatch
+        XCTAssertTrue(command.waitForExistence(timeout: 10)); command.tap()
+        XCTAssertTrue(app.textFields["command-search"].waitForExistence(timeout: 5))
+        app.buttons["Done"].tap()
         let image = XCTAttachment(screenshot: app.screenshot()); image.name = "Landscape workspace"; image.lifetime = .keepAlways; add(image)
     }
 
