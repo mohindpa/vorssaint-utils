@@ -1,0 +1,88 @@
+name: iPad native validation
+on:
+  push:
+    branches: [main, ipad-on-steroids]
+    paths: ['iPadOnSteroids/**', '.github/workflows/ipad.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ipad-validation-${{ github.ref }}-${{ github.sha }}
+  cancel-in-progress: true
+jobs:
+  native:
+    name: Native / ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, xcode-27]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: iPadOnSteroids
+    steps:
+      - uses: actions/checkout@v4
+      - name: Record toolchain and SDKs
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks
+          swift --version
+      - name: Validate project structure
+        run: python3 scripts/check_project.py
+      - name: Run core behavior tests
+        run: swift test
+      - name: Select an available iPad simulator
+        id: simulator
+        run: |
+          xcrun simctl list devices available -j > /tmp/ipad-simulators.json
+          python3 - <<'PY'
+          import json, os, subprocess
+          with open('/tmp/ipad-simulators.json') as f:
+              data = json.load(f)
+          sdk = subprocess.check_output(['xcrun', '--sdk', 'iphonesimulator', '--show-sdk-version'], text=True).strip()
+          major = sdk.split('.')[0]
+          candidates = [(runtime, device) for runtime, devices in data['devices'].items() for device in devices if ('iOS-' + major + '-') in runtime and 'iPad' in device['name'] and device.get('isAvailable', False)]
+          if not candidates:
+              raise SystemExit('No iPad simulator matching selected SDK ' + sdk)
+          runtime, device = sorted(candidates, key=lambda x: tuple(int(v) for v in x[0].split('iOS-')[-1].split('-') if v.isdigit()))[-1]
+          print('Testing on', runtime, device['name'], 'with SDK', sdk)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write('id=' + device['udid'] + '\n')
+          PY
+      - name: Compile simulator app and test bundles
+        env:
+          SIMULATOR_ID: ${{ steps.simulator.outputs.id }}
+        run: python3 scripts/run_native.py build
+      - name: Build optimized unsigned device binary
+        run: python3 scripts/run_native.py device
+      - name: Run native unit and OCR tests
+        env:
+          SIMULATOR_ID: ${{ steps.simulator.outputs.id }}
+        run: python3 scripts/run_native.py unit
+      - name: Run native interaction and accessibility tests
+        env:
+          SIMULATOR_ID: ${{ steps.simulator.outputs.id }}
+        run: python3 scripts/run_native.py ui
+      - name: Export simulator screenshots
+        if: always()
+        run: |
+          if [ -f UIResults.xcresult/Info.plist ]; then
+            xcrun xcresulttool export attachments --path UIResults.xcresult --output-path TestAttachments
+          fi
+      - name: Upload simulator screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ipad-simulator-screenshots-${{ matrix.runner }}
+          path: iPadOnSteroids/TestAttachments
+          if-no-files-found: ignore
+      - name: Upload native test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ipad-native-results-${{ matrix.runner }}
+          path: |
+            iPadOnSteroids/UnitResults.xcresult
+            iPadOnSteroids/UIResults.xcresult
+          if-no-files-found: ignore
