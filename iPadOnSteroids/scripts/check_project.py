@@ -10,7 +10,7 @@ ids = re.findall(r'^([A-F0-9]{24}) =', project, re.M)
 assert len(ids) == len(set(ids)), 'Duplicate object IDs'
 refs = set(re.findall(r'\b[A-F0-9]{24}\b', project))
 assert refs == set(ids), f'Dangling project references: {refs - set(ids)}'
-for path in [*root.glob('App/*.swift'), *root.glob('Tests/*.swift')]:
+for path in [*root.glob('App/*.swift'), *root.glob('Tests/*.swift'), *root.glob('UITests/*.swift')]:
     assert f'path = "{path.name}";' in project, f'Missing source {path}'
 scheme = ET.parse(root / 'iPadOnSteroids.xcodeproj/xcshareddata/xcschemes/iPadOnSteroids.xcscheme')
 for ref in scheme.findall('.//BuildableReference'):
