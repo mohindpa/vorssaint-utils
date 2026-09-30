@@ -37,14 +37,16 @@ jobs:
         run: |
           xcrun simctl list devices available -j > /tmp/ipad-simulators.json
           python3 - <<'PY'
-          import json, os
+          import json, os, subprocess
           with open('/tmp/ipad-simulators.json') as f:
               data = json.load(f)
-          candidates = [(runtime, device) for runtime, devices in data['devices'].items() for device in devices if 'iPad' in device['name'] and device.get('isAvailable', False)]
+          sdk = subprocess.check_output(['xcrun', '--sdk', 'iphonesimulator', '--show-sdk-version'], text=True).strip()
+          major = sdk.split('.')[0]
+          candidates = [(runtime, device) for runtime, devices in data['devices'].items() for device in devices if ('iOS-' + major + '-') in runtime and 'iPad' in device['name'] and device.get('isAvailable', False)]
           if not candidates:
-              raise SystemExit('No available iPad simulator')
+              raise SystemExit('No iPad simulator matching selected SDK ' + sdk)
           runtime, device = sorted(candidates, key=lambda x: tuple(int(v) for v in x[0].split('iOS-')[-1].split('-') if v.isdigit()))[-1]
-          print('Testing on', runtime, device['name'])
+          print('Testing on', runtime, device['name'], 'with SDK', sdk)
           with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
               f.write('id=' + device['udid'] + '\n')
           PY

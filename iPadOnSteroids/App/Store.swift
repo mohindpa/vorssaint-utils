@@ -22,6 +22,7 @@ import UserNotifications
     private var active = false
     private var activeScenes: Set<UUID> = []
     private var keepAwake = false
+    private var backgroundSave: UIBackgroundTaskIdentifier = .invalid
     private let file: URL
     private let writer: WorkspaceFile
     private let defaults: UserDefaults
@@ -172,15 +173,26 @@ import UserNotifications
     private func write(_ snapshot: Workspace, version: UInt64) async {
         do {
             try await writer.write(snapshot, revision: version)
-            if revision == version { saveError = nil; saving = false }
+            if revision == version { saveError = nil; saving = false; endBackgroundSave() }
         } catch {
-            if revision == version { saveError = "Changes are not saved: \(error.localizedDescription)"; saving = false }
+            if revision == version { saveError = "Changes are not saved: \(error.localizedDescription)"; saving = false; endBackgroundSave() }
         }
     }
     func flush() {
         guard persistenceError == nil else { return }
+        if !active && backgroundSave == .invalid {
+            backgroundSave = UIApplication.shared.beginBackgroundTask(withName: "Save workspace") { [weak self] in
+                Task { @MainActor [weak self] in self?.endBackgroundSave() }
+            }
+        }
         saveTask?.cancel(); revision += 1; let version = revision; let snapshot = workspace; saving = true
         saveTask = Task { [weak self] in await self?.write(snapshot, version: version) }
+    }
+    private func endBackgroundSave() {
+        if backgroundSave != .invalid {
+            UIApplication.shared.endBackgroundTask(backgroundSave)
+            backgroundSave = .invalid
+        }
     }
     func replaceWorkspace(_ value: Workspace) {
         do { try BackupCodec.validate(value); workspace = value; flush(); message = "Workspace restored." }
