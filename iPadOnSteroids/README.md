@@ -24,7 +24,9 @@ No account, app server, telemetry or private APIs. Device backups can include lo
 
 A native Mac CI workflow is committed at `.github/workflows/ipad.yml`. It records Xcode/SDK versions, runs core tests, exercises native app/unit/UI tests on baseline and Xcode 27 iPad simulators and builds an optimized unsigned device binary. See [VALIDATION.md](docs/VALIDATION.md) for observed results and [QUALITY.md](docs/QUALITY.md) for the evidence required to meet the **9.5/10 goal**.
 
-A source upgrade or passing simulator run cannot establish physical-device battery usage, every accessibility flow or compatibility with an untested OS release. Those remain explicit release gates. No signed IPA or TestFlight distribution is supplied.
+Final app source `2d12d48989ed97cc18aed0d37371da8b10937e5b` passed [native validation](https://github.com/mohindpa/vorssaint-utils/actions/runs/36787477441) on Xcode 16.4/iOS 18.5 and Xcode 27/iOS 27: 26 native unit/OCR tests and four UI tests per job, plus overlapping core tests and optimized unsigned device builds.
+
+A passing simulator run cannot establish physical-device battery usage, every accessibility flow or compatibility on your physical M1. Those remain explicit release gates. No signed IPA or TestFlight distribution is supplied.
 
 ## Run on your M1 iPad
 

@@ -29,7 +29,7 @@ A Personal Team build generally lasts seven days; connect to Xcode and run again
 4. Clean `https://example.com/?q=ipad&utm_source=news&fbclid=123#results`. Expect `https://example.com/?q=ipad#results`.
 5. Import a screenshot containing text. Check recognized text against the image; OCR is imperfect and should be reviewed.
 6. Create a Shortcut named `Desk Mode` in Apple's Shortcuts app. Add a Set Focus action, save it, then add a launcher with that exact name. Tap it and follow any system permission prompts. This app does not create Shortcuts automatically.
-7. Start a focus timer, leave the app and return. Check the countdown reflects elapsed time. Stop it and verify the notification is canceled. For faster development testing, temporarily add a one-minute picker option in Dashboard.swift.
+7. Start a focus timer, leave the app and return. Check the countdown reflects elapsed time. Stop it and verify the notification is canceled. Select the existing one-minute session for a quick check.
 8. Export a backup to Files, edit a note, import the backup and confirm replacement. Try a malformed JSON file and verify an error appears without replacing data.
 9. Switch appearance/accent, hide the island, and test foreground keep-awake. Confirm normal auto-lock returns after leaving the app or disabling keep-awake.
 10. Test denied notification access. The timer should still work in-app and explain the notification limitation. There is no background clipboard capture or floating overlay over other apps.
@@ -40,7 +40,7 @@ A Personal Team build generally lasts seven days; connect to Xcode and run again
 - **Signing fails:** select your team, use a unique bundle identifier, and check Apple Account access. Do not send account passwords or signing credentials in chat.
 - **Shortcut not found:** launcher names must match an existing shortcut. Test it in Shortcuts first.
 - **Photos unavailable:** use an image available locally or allow an iCloud-backed selection to download. Only selected images are passed to the app.
-- **Source build failure:** retain Xcode's exact error and file/line. The source has not yet been compiled in this authoring environment.
+- **Source build failure:** retain Xcode's exact error and file/line. Hosted native builds passed on Xcode 16.4 and 27; see VALIDATION.md for the tested revision.
 
 ## v0.2 regression checks
 

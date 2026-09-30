@@ -22,7 +22,7 @@ This is a quality target, not a score awarded for writing more code. The rubric 
 - Timer pause/resume, restart, stop and permission denial do not create an obsolete completion notification.
 - Export/import preserves all model identities and pin/completion states; unreadable originals are recoverable.
 - On an M1 iPad, record cold/warm launch, UI responsiveness, idle energy and OCR peak memory/latency using Xcode Instruments. Set targets from those measurements and review any outliers before release.
-- Record exact iPadOS and Xcode versions. **iPadOS 27 is not claimed compatible until tested on that version.**
+- Record exact iPadOS and Xcode versions. iPadOS 27 simulator tests and device compilation have passed; physical M1 operation on that version still requires validation.
 
 ## Current evidence categories
 
