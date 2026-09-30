@@ -41,3 +41,17 @@ A Personal Team build generally lasts seven days; connect to Xcode and run again
 - **Shortcut not found:** launcher names must match an existing shortcut. Test it in Shortcuts first.
 - **Photos unavailable:** use an image available locally or allow an iCloud-backed selection to download. Only selected images are passed to the app.
 - **Source build failure:** retain Xcode's exact error and file/line. The source has not yet been compiled in this authoring environment.
+
+## v0.2 regression checks
+
+- Expand/collapse the island; customize floating-dock favorites; test overflow in a narrow window.
+- Create and rename multiple notes, edit them, switch between them, delete one with confirmation, and relaunch. Import a v0.1 backup and verify its original note survived migration.
+- Add tasks, mark complete, hide completed and confirm bulk clearing.
+- In Command-K, find a note by content and a pinned shelf item. Try `=2 + 3 * 4`, `10 cm to in`, `32 f to c` and `#62E3B5`; copy the results.
+- Pause a focus timer, wait, resume and confirm paused time was preserved. Stop/restart while the notification permission prompt is open and verify there is no obsolete reminder.
+- Edit quickly and background the app; relaunch and verify the latest text. Exercise retry/export if a save error appears.
+- Test oversized, unrelated, future-version and duplicate-ID JSON backups. Each must be rejected without replacing current data.
+- If saved data cannot be opened, export the original file and use the explicit recovery action; verify a recovery copy remains before writing a new workspace.
+- Change Photos selections while OCR runs, cancel and leave the OCR screen. Only the current selection should populate the editor.
+- Test VoiceOver, largest Dynamic Type, Reduce Motion, Reduce Transparency, increased contrast and keyboard navigation. Check all primary actions remain reachable.
+- Record your exact iPadOS version, including 27 if that is installed. Passing CI on another simulator version does not prove your OS compatibility.

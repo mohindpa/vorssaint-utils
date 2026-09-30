@@ -1,25 +1,21 @@
-# Vorssaint to iPad feature mapping
+# v0.2 feature scope
 
-Upstream inspected on September 30, 2026. Its Package.swift targets macOS 14+ and uses macOS-specific system libraries. The changelog's September 29 `3.4.1-beta.1` describes a floating island, multiple displays, lock-screen presentation and calendar countdowns. Those are macOS features, not an iPad implementation to enable with a build flag.
+| Tool | Implemented source behavior | Boundary |
+| --- | --- | --- |
+| Floating island | Expand/collapse material capsule, timer progress/actions, note and command buttons | Inside the app; no system-wide or lock-screen island |
+| Floating dock | Configurable favorite tools, horizontal overflow, current-tool highlight | App navigation only |
+| Notes | Multiple named notes, autosave, share, capture to shelf, confirmed deletion | Plain text; no Markdown renderer or automatic sync |
+| Tasks | Add, complete, delete, hide completed, confirmed bulk clear | Local tasks; no Reminders integration |
+| Focus | Custom 1–180 min, pause/resume, persisted state, optional notification | No background wake lock; notification delivery depends on iPadOS |
+| Clipboard | Explicit text/link Paste, history, pinning, search and sharing | No background monitoring or image/file clipboard history |
+| Clean links | Remove known tracking fields, preserve functional encoding | Signed links can be invalidated by removed parameters |
+| OCR | Selected-image offline Vision recognition, bounded thumbnail decode, cancellation | Cannot silently capture/read another app; no guarantee of perfect text |
+| Shortcuts | Launch user-created named routines | App does not create/inspect system Shortcuts; their own permissions apply |
+| Command bar | Tool/note/shelf/task/Shortcut search, calculator, unit conversion, hex-to-RGB | No global file search, arbitrary script evaluator or system hotkey takeover |
+| Device readings | Battery level, thermal state, available storage, manual refresh | No Mac SMC sensors, per-app CPU usage or battery health percentage |
+| Personalization | Theme/accent, visibility, dock favorites, foreground keep-awake | Does not replace system UI, launcher or gesture handling |
+| Backups | Validated versioned JSON, legacy migration, explicit replacement, recovery copies | Readable exports; appearance/timers are stored separately |
 
-| Upstream feature | iPad implementation / boundary |
-| --- | --- |
-| Dynamic Island | In-app capsule with focus countdown and quick tool buttons, implemented. No overlay on other apps or lock screen. Widgets and supported Live Activities would require dedicated extensions and OS-specific implementation. |
-| Clipboard history | Explicit text/link Paste capture, implemented. Global background monitoring is unavailable. |
-| Scratchpad | Autosaved local note and sharing, implemented. Tabs/Markdown preview not included. |
-| Command Bar | Find implemented tools and saved Shortcuts; Command-K, implemented. System app/file search and shell scripts not included. |
-| Quick tools and personalization | Theme, accent, island/readout visibility and Shortcut tiles, implemented. No system theme replacement. |
-| Text from screen | Select screenshot/photo and run offline Vision OCR, implemented. Cannot silently inspect another app. |
-| Clean URL | Known tracker removal, copy/share/save, implemented. |
-| System monitor | Battery level, thermal state, available storage, implemented. Public APIs do not provide global per-app usage, battery health percentage or Mac SMC temperatures. |
-| Keep awake | Foreground idle-timer control, implemented. No background system wake lock. |
-| Brightness / Focus / app launch | Through user-created Apple Shortcuts where the system supports the action, implemented as launchers. |
-| Window layouts / Dock previews | Use iPadOS multitasking/windowing controls. This app cannot reposition other apps' windows. |
-| Per-app audio volume/output | No public general-purpose iPad equivalent. Not implemented. |
-| Fan control | M1 iPad Pro is passively cooled; no fan to control. |
-| Global key/mouse remapping | No general system-wide public API. App-local shortcuts only. |
-| Cache cleaner / uninstaller / Homebrew / port process killer | Sandboxed iPad apps cannot manage other apps' files/processes; not implemented. |
-| Capture / media editing / radial menu / custom keyboard | Future app-local features or dedicated extensions; not implemented. |
-| Control a Mac from iPad | Would require an authenticated Mac companion plus appropriate Mac permissions. No remote-control server is included. |
+Calculator supports decimal numbers, + - * /, parentheses and unary signs, within bounded input/depth. Unit conversions support mm/cm/m/km/in/ft/yd/mi, g/kg/oz/lb, and c/f/k. Incompatible units and temperatures below absolute zero are rejected.
 
-The app uses stock public APIs and does not require a jailbreak. A jailbreak/private-API build would be a separate project with version/device-specific feasibility; it is outside this source prototype.
+Native materials are available on the iPadOS 17 baseline. The visual direction is floating, translucent and capsule-based; it does not rely on undocumented iPadOS 27 APIs or copy Vorssaint’s assets. Widgets, Live Activities, share extensions, global audio mixing, media editing and a Mac companion are not implemented.

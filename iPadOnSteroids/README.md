@@ -1,36 +1,39 @@
-# iPad on Steroids
+# iPad on Steroids — v0.2
 
-An independent native iPad utility workspace inspired by the utility categories in [Vorssaint](https://github.com/vorssaint/vorssaint-utils). Version 0.1 is a source prototype for **iPadOS 17+**, including iPad Pro M1. Open `iPadOnSteroids.xcodeproj` on a Mac with Xcode 15 or later (use a current Xcode that supports your iPadOS version).
+A native iPad utility workspace with expandable floating controls, local tools and personal Shortcut launchers. Independent app inspired by Vorssaint’s utility categories; no upstream branding or macOS application code is included.
 
-## Implemented in the source
+Open **`iPadOnSteroids/iPadOnSteroids.xcodeproj`** from branch `ipad-on-steroids` in `mohindpa/vorssaint-utils`. The repository-root Package.swift belongs to the upstream Mac app. Minimum deployment target: **iPadOS 17**. A newer deployment target alone does not certify iPadOS 27 compatibility.
 
-- In-app island with focus countdown and quick access to scratchpad and command bar.
-- Focus sessions, persisted end times, and permission-based completion notifications.
-- Text/link clipboard shelf with explicit Paste, pinning, search, sharing and deletion.
-- Autosaved scratchpad and JSON workspace export/import with replacement confirmation.
-- URL cleaning that preserves functional query parameters and fragments.
-- On-device image text recognition through Vision and the system photo picker.
-- User-defined Apple Shortcuts launchers; command bar with Command-K on a keyboard.
-- Battery level, thermal state and available storage from public device APIs.
-- Accent/theme choices, optional island/readouts and foreground keep-awake.
-- Adaptive iPad layout, system controls, selectable text and accessible button labels.
+## What changed
 
-No account, server, analytics, third-party packages or private APIs. Local app storage can be included in device backups according to your device settings. Exported JSON is readable and contains your notes and clipboard items.
+- **Floating controls:** expandable material island, timer actions, quick note/command access, and a floating dock with configurable favorites. Controls stay inside this app.
+- **Notes:** multiple named notes, safe identity-based editing, local autosave, sharing and shelf capture. Legacy single-note backups migrate automatically.
+- **Tasks:** add/complete/delete tasks, filter completed items, confirm bulk clearing and see the next task on the dashboard.
+- **Focus:** 1–180-minute sessions, pause/resume, persisted deadlines/paused time and optional completion notifications. Timers stop ticking while paused, idle or inactive.
+- **Command bar:** Command-K; find tools, notes, shelf text, tasks and Shortcuts. Calculate with `=42 * 3`, convert supported units with `10 cm to in` or `32 f to c`, and convert hex colors such as `#62E3B5` to RGB. Tap a result to copy it.
+- **Clipboard shelf:** explicit Paste capture, pinned-only filtering, search, sharing and delete controls. Recapture preserves identity/pins. History retains up to 100 unpinned items plus pinned items within backup limits.
+- **URL cleaner:** removes known tracking parameters while preserving original encoding of functional query values, repeated parameters and fragments.
+- **Image text:** selected-photo Vision OCR, canceled when the selection/view changes, 40 MB input guard and 4096-pixel thumbnail decoding to bound decoded-image memory. OCR output needs review.
+- **Shortcuts:** named tiles launch existing Apple Shortcuts and report failure to open the app. The user creates and authorizes each Shortcut.
+- **Customization:** system/light/dark appearance, three accents, island/readout visibility, dock favorites and foreground-only keep-awake. Materials respect Reduce Transparency and increased contrast; expansion respects Reduce Motion.
+- **Storage:** 350 ms debounced autosave; serial revision-aware writes prevent stale snapshots replacing newer data. Visible save errors, retry/export actions, bounded/validated JSON backups, and an explicit recovery path preserving unreadable originals.
 
-## Status
+No account, app server, telemetry or private APIs. Device backups can include local app data according to device settings. Exported JSON is readable and may contain private content. iCloud-backed Photos selections and user-run Shortcuts can involve services outside this app.
 
-Source and Xcode project are prepared. This Linux authoring environment has no Swift toolchain, Xcode, Apple signing identity or iPad attached. **The app has not been compiled, simulator-tested or device-tested. No signed IPA is supplied.** Structural checks are recorded in `docs/VALIDATION.md`; XCTest coverage is provided for URL cleaning, shortcut encoding and backup round trips and must run on your Mac.
+## Validation and the 9.5 target
 
-This is a first implementation of the feasible workspace features, not a complete port of the macOS app. Widgets, Live Activities, share extensions, a custom keyboard, media editing and a Mac companion are not implemented. See [feature mapping](docs/FEATURES.md) for the scope and platform constraints.
+A native Mac CI workflow is committed at `.github/workflows/ipad.yml`. It records Xcode/SDK versions, runs core tests, exercises native app/unit/UI tests on an available iPad simulator and builds an optimized unsigned device binary. See [VALIDATION.md](docs/VALIDATION.md) for observed results and [QUALITY.md](docs/QUALITY.md) for the evidence required to meet the **9.5/10 goal**.
 
-## Install and test
+A source upgrade or passing simulator run cannot establish physical-device battery usage, every accessibility flow or compatibility with an untested OS release. Those remain explicit release gates. No signed IPA or TestFlight distribution is supplied.
 
-Follow [INSTALL.md](docs/INSTALL.md). A free Apple Account can install a development build using Xcode; Personal Team provisioning generally expires after seven days. TestFlight requires paid Apple Developer Program membership and App Store Connect setup.
+## Run on your M1 iPad
 
-## Project maintenance
+Follow [INSTALL.md](docs/INSTALL.md). Use an Xcode version that supports your installed iPadOS. Select your Apple Account/team, connect the iPad, enable Developer Mode and press Command-R. Free Personal Team builds generally need renewal after seven days.
 
-The Xcode project is included. If sources change, regenerate it with `python3 scripts/generate_project.py`. No Homebrew/XcodeGen dependency is required. Set your own development team in Xcode after regeneration. `scripts/test-on-mac.sh` runs unit tests on a simulator you select.
+On a Mac, run core tests with `cd iPadOnSteroids && swift test`. For native tests, choose an iPad simulator and run `SIMULATOR_ID='<UUID>' bash scripts/test-on-mac.sh`, or use Command-U in Xcode. Native UI tests use a temporary workspace and a separate timer-defaults suite, preserving normal workspace files.
 
-## License and attribution
+If sources change, regenerate the project with `python3 scripts/generate_project.py`; check it with `python3 scripts/check_project.py`. No XcodeGen or third-party runtime package is required. Select your development team again after regeneration if needed.
 
-GPL-3.0-or-later; see LICENSE. This implementation was written independently; it contains no Vorssaint application code, logo, icon, bundle identity or copied interface assets. Upstream source inspected: README.md, Package.swift, TRADEMARKS.md, and the recent CHANGELOG.md entries. This app lives under `iPadOnSteroids/` in the user’s fork. Open the Xcode project in this directory; the repository-root Package.swift builds the upstream macOS app.
+## License
+
+GPL-3.0-or-later; see LICENSE. This is an independent app, not an official Vorssaint release or a full port. Use iPadOS for system windowing; no app-local implementation can promise an unrestricted global overlay, per-app mixer or other-app cache cleaner through general public APIs.

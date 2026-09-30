@@ -126,3 +126,29 @@ final class WorkspaceUpgradeTests: XCTestCase {
         XCTAssertNoThrow(try BackupCodec.read(url))
     }
 }
+
+final class CommandUtilityTests: XCTestCase {
+    func testCalculatorPrecedenceParenthesesAndUnarySigns() {
+        XCTAssertEqual(Calculator.calculate("2 + 3 * 4"), 14)
+        XCTAssertEqual(Calculator.calculate("-(2 + 3) * 4 / 2"), -10)
+        XCTAssertEqual(Calculator.calculate(" .5 + 1.25 "), 1.75)
+    }
+    func testCalculatorRejectsZeroDivisionScriptsAndUnboundedInput() {
+        for query in ["1/0", "2+", "system(1)", "1 2", "1..2", String(repeating: "(", count: 50)+"1"+String(repeating: ")", count: 50), String(repeating: "1", count: 201)] {
+            XCTAssertNil(Calculator.calculate(query), query)
+        }
+    }
+    func testUnitConversionRequiresCompatibleDimensions() {
+        XCTAssertEqual(CommandUtility.evaluate("10 cm to in")?.value, "3.937007874 in")
+        XCTAssertEqual(CommandUtility.evaluate("32 f to c")?.value, "0 c")
+        XCTAssertEqual(CommandUtility.evaluate("1 kg to g")?.value, "1000 g")
+        XCTAssertNil(CommandUtility.evaluate("10 cm to kg"))
+        XCTAssertNil(CommandUtility.evaluate("-1 k to c"))
+    }
+    func testHexColorsAndCalculatorCommand() {
+        XCTAssertEqual(CommandUtility.evaluate("#abc")?.value, "rgb(170, 187, 204)")
+        XCTAssertEqual(CommandUtility.evaluate("#62E3B5")?.value, "rgb(98, 227, 181)")
+        XCTAssertEqual(CommandUtility.evaluate("=42 * 3")?.value, "126")
+        XCTAssertNil(CommandUtility.evaluate("#GGGGGG"))
+    }
+}

@@ -21,6 +21,7 @@ struct Dashboard: View {
     @AppStorage("showTelemetry") private var showTelemetry = true
     @AppStorage("keepAwake") private var keepAwake = false
     @AppStorage("quickTools") private var quickTools = "Notes|Clipboard shelf|Tasks|Launchpad"
+    @State private var sceneID = UUID()
     @State private var selected: Panel? = .overview
     @State private var selectedNote: UUID?
     @State private var command = ""
@@ -49,6 +50,23 @@ struct Dashboard: View {
         }
     }
     var body: some View {
+        presentation
+        .confirmationDialog("Replace your notes, tasks, shelf and launchers? Export your current workspace first if you want to keep it.", isPresented: $confirmImport, titleVisibility: .visible) {
+            Button("Replace workspace", role: .destructive) { if let value = pendingWorkspace { store.replaceWorkspace(value) }; pendingWorkspace = nil }
+            Button("Cancel", role: .cancel) { pendingWorkspace = nil }
+        }
+        .confirmationDialog("Delete all saved clipboard items?", isPresented: $confirmClear, titleVisibility: .visible) {
+            Button("Delete shelf", role: .destructive) { store.workspace.shelf.removeAll() }
+        }
+        .confirmationDialog("Start a new workspace? Your unreadable file will be preserved as a recovery copy.", isPresented: $confirmRecovery, titleVisibility: .visible) {
+            Button("Preserve file and start fresh") { Task { await store.recoverStorage() } }
+        }
+        .onChange(of: keepAwake) { _, _ in updateIdleTimer() }
+        .onChange(of: scenePhase) { _, phase in store.setActive(phase == .active, sceneID: sceneID); updateIdleTimer() }
+        .onAppear { store.setActive(scenePhase == .active, sceneID: sceneID); updateIdleTimer() }
+        .onDisappear { store.setActive(false, sceneID: sceneID) }
+    }
+    private var navigation: some View {
         NavigationSplitView {
             List(Panel.allCases, selection: $selected) { item in Label(item.rawValue, systemImage: item.icon).tag(item) }
                 .navigationTitle("On Steroids")
@@ -81,6 +99,9 @@ struct Dashboard: View {
                 Button { showCommand = true } label: { Label("Command bar", systemImage: "command") }.keyboardShortcut("k", modifiers: .command).accessibilityIdentifier("open-command")
             }
         }
+    }
+    private var presentation: some View {
+        navigation
         .tint(tint)
         .preferredColorScheme(appearance == "System" ? nil : appearance == "Dark" ? .dark : .light)
         .sheet(isPresented: $showCommand) { commandBar }
@@ -90,22 +111,8 @@ struct Dashboard: View {
         .fileImporter(isPresented: $importing, allowedContentTypes: [.json]) { result in
             Task { await importBackup(result) }
         }
-        .confirmationDialog("Replace your notes, tasks, shelf and launchers? Export your current workspace first if you want to keep it.", isPresented: $confirmImport, titleVisibility: .visible) {
-            Button("Replace workspace", role: .destructive) { if let value = pendingWorkspace { store.replaceWorkspace(value) }; pendingWorkspace = nil }
-            Button("Cancel", role: .cancel) { pendingWorkspace = nil }
-        }
-        .confirmationDialog("Delete all saved clipboard items?", isPresented: $confirmClear, titleVisibility: .visible) {
-            Button("Delete shelf", role: .destructive) { store.workspace.shelf.removeAll() }
-        }
-        .confirmationDialog("Start a new workspace? Your unreadable file will be preserved as a recovery copy.", isPresented: $confirmRecovery, titleVisibility: .visible) {
-            Button("Preserve file and start fresh") { Task { await store.recoverStorage() } }
-        }
-        .onChange(of: keepAwake) { _, _ in updateIdleTimer() }
-        .onChange(of: scenePhase) { _, phase in store.setActive(phase == .active); updateIdleTimer() }
-        .onAppear { store.setActive(scenePhase == .active); updateIdleTimer() }
-        .onDisappear { store.setActive(false); UIDevice.current.isIdleTimerDisabled = false }
     }
-    private func updateIdleTimer() { UIDevice.current.isIdleTimerDisabled = keepAwake && scenePhase == .active }
+    private func updateIdleTimer() { store.setKeepAwake(keepAwake) }
     @ViewBuilder private var feedback: some View {
         if let error = store.persistenceError {
             ToolCard(title: "Protect your saved data", icon: "exclamationmark.shield") {
@@ -319,6 +326,12 @@ struct Dashboard: View {
         NavigationStack {
             List {
                 TextField("Find tools, notes, shelf items or routines", text: $command).accessibilityIdentifier("command-search").textInputAutocapitalization(.never).autocorrectionDisabled()
+                if let result = CommandUtility.evaluate(command) {
+                    Section(result.title) { Button(result.value) { store.copy(result.value); showCommand = false } }
+                }
+                if command.isEmpty {
+                    Text("Try =42 * 3, 10 cm to in, 32 f to c or #62E3B5.").font(.caption).foregroundStyle(.secondary)
+                }
                 Section("Tools") {
                     ForEach(Panel.allCases.filter { matches($0.rawValue) }) { item in
                         Button { selected = item; showCommand = false } label: { Label(item.rawValue, systemImage: item.icon) }.accessibilityIdentifier("tool-\(item.rawValue)")

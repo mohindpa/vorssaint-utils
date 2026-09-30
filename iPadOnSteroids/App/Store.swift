@@ -20,6 +20,8 @@ import UserNotifications
     private var notificationID: String?
     private var revision: UInt64 = 0
     private var active = false
+    private var activeScenes: Set<UUID> = []
+    private var keepAwake = false
     private let file: URL
     private let writer: WorkspaceFile
     private let defaults: UserDefaults
@@ -56,10 +58,20 @@ import UserNotifications
     var timeLabel: String { String(format: "%02d:%02d", remaining / 60, remaining % 60) }
     var isPaused: Bool { focus?.isPaused == true }
     var progress: Double { focus?.progress(at: now) ?? 0 }
-    func setActive(_ value: Bool) {
-        active = value; now = Date(); tick()
+    func setActive(_ value: Bool, sceneID: UUID) {
+        if value { activeScenes.insert(sceneID) } else { activeScenes.remove(sceneID) }
+        active = !activeScenes.isEmpty
+        UIApplication.shared.isIdleTimerDisabled = keepAwake && active
+        updateTicker()
+    }
+    func setKeepAwake(_ value: Bool) {
+        keepAwake = value
+        UIApplication.shared.isIdleTimerDisabled = keepAwake && active
+    }
+    private func updateTicker() {
+        now = Date(); tick()
         ticker?.invalidate(); ticker = nil
-        if value {
+        if active {
             refresh()
             if focus != nil && !isPaused {
                 ticker = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
@@ -92,15 +104,15 @@ import UserNotifications
     }
     func startFocus(minutes: Int) {
         now = Date(); focus = FocusSession(seconds: TimeInterval(minutes) * 60, now: now)
-        persistFocus(); scheduleNotification(); setActive(active)
+        persistFocus(); scheduleNotification(); updateTicker()
     }
     func pauseFocus() {
         now = Date(); focus?.pause(at: now)
-        persistFocus(); cancelNotification(); setActive(active)
+        persistFocus(); cancelNotification(); updateTicker()
     }
     func resumeFocus() {
         now = Date(); focus?.resume(at: now)
-        persistFocus(); scheduleNotification(); setActive(active)
+        persistFocus(); scheduleNotification(); updateTicker()
     }
     func stopFocus() {
         focus = nil; persistFocus(); cancelNotification(); ticker?.invalidate(); ticker = nil

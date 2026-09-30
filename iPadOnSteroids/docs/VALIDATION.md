@@ -1,24 +1,24 @@
-# Validation record
+# v0.2 validation record
 
-September 30, 2026 — source prepared in a Linux workspace.
+September 30, 2026. Acceptance target: 9.5/10; see QUALITY.md. Source authoring is in Linux, with native execution attempted through GitHub Actions on a hosted Mac.
 
-Passed here:
+## Passed structural checks
 
-- Project generator runs successfully and includes four app sources and one test source.
-- Structural check finds 38 unique project objects with no dangling references.
-- Shared Xcode scheme XML and privacy manifest plist parse successfully.
-- All Swift source files are present in the generated project.
-- iPad-only device family and iPadOS 17 deployment target are configured.
-- Both Python scripts pass Python bytecode compilation.
-- Mac test script passes Bash syntax checking.
-- Source review added cancellation guards for notification authorization completing after a focus timer is stopped/replaced, protected unreadable saved workspaces from overwrite, and preserved pins when recapturing an existing clipboard item.
+- Generated Xcode project includes seven app sources, two unit-test sources and one UI-test source.
+- 57 unique project objects, all source files included, no dangling references.
+- Shared scheme XML and privacy manifest parse; iPad-only target and iPadOS 17 minimum are configured.
+- Python project scripts compile and the Mac test script passes Bash syntax checking.
+- Native CI YAML parses and defines toolchain recording, behavior tests, simulator unit/UI tests and an optimized unsigned device build.
 
-Not run:
+## Native runs
 
-- Swift compilation, Xcode build/analyze, XCTest execution, simulator launch.
-- Apple signing, provisioning, device installation or physical iPad tests.
-- App Store Connect validation or TestFlight distribution.
+Initial upgrade commit: 5e55b9bf279669e6455437cc34b9a36db3000e87.
 
-Reason: Xcode and Swift are not installed in this Linux environment, and no Apple signing identity or physical iPad is available. The provided XCTest cases express expected runtime behavior but have not executed. Structural checks do not establish that the Swift source compiles or that the app runs correctly. Follow INSTALL.md and retain any exact Xcode errors for follow-up.
+- https://github.com/mohindpa/vorssaint-utils/actions/runs/36781895355
+- Core behavior test step observed successful; native simulator build/test step was still running when this record was first written.
 
-GitHub publication: the user created mohindpa/vorssaint-utils as a fork. The direct GitHub connector confirmed write access. The app source is prepared for publication under iPadOnSteroids/ on a separate branch with a draft pull request.
+Additional refinements include task/note simulator checks, indexed-note safety, multi-window activity coordination and calculator/conversion tests. Their final CI result must be recorded after execution. Do not treat source inclusion as a passing runtime test.
+
+## Still requires physical evidence
+
+Signed installation, M1 iPad responsiveness/energy measurements, full VoiceOver/Dynamic Type review, photo-picker/iCloud integration, real Shortcut execution and any specific iPadOS 27 compatibility claim. No signed IPA or TestFlight release is included.

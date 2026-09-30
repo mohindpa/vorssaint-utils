@@ -139,14 +139,14 @@ struct FocusSession: Codable, Equatable {
     var deadline: Date?
     var pausedRemaining: TimeInterval?
     init(seconds: TimeInterval, now: Date) {
-        duration = min(180 * 60, max(60, seconds))
+        duration = seconds.isFinite ? min(180 * 60, max(60, seconds)) : 60
         deadline = now.addingTimeInterval(duration)
     }
     var isPaused: Bool { pausedRemaining != nil }
     func remaining(at now: Date) -> TimeInterval { max(0, pausedRemaining ?? deadline?.timeIntervalSince(now) ?? 0) }
     func progress(at now: Date) -> Double { min(1, max(0, 1 - remaining(at: now) / max(1, duration))) }
     mutating func pause(at now: Date) { guard deadline != nil else { return }; pausedRemaining = remaining(at: now); deadline = nil }
-    mutating func resume(at now: Date) { guard let seconds = pausedRemaining else { return }; deadline = now.addingTimeInterval(seconds); pausedRemaining = nil }
+    mutating func resume(at now: Date) { guard let seconds = pausedRemaining else { return }; id = UUID(); deadline = now.addingTimeInterval(seconds); pausedRemaining = nil }
 }
 
 enum LinkCleaner {
@@ -172,5 +172,86 @@ enum ShortcutLink {
         var parts = URLComponents(); parts.scheme = "shortcuts"; parts.host = "run-shortcut"
         parts.queryItems = [URLQueryItem(name: "name", value: name)]
         return parts.url
+    }
+}
+
+struct UtilityResult: Equatable {
+    var title: String
+    var value: String
+}
+enum CommandUtility {
+    static func evaluate(_ query: String) -> UtilityResult? {
+        let input = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        if input.hasPrefix("="), let value = Calculator.calculate(String(input.dropFirst())) {
+            return UtilityResult(title: "Calculation · tap to copy", value: format(value))
+        }
+        if input.hasPrefix("#") {
+            var hex = String(input.dropFirst())
+            if hex.count == 3 { hex = hex.map { "\($0)\($0)" }.joined() }
+            guard hex.count == 6, hex.allSatisfy({ $0.isHexDigit }), let code = Int(hex, radix: 16) else { return nil }
+            return UtilityResult(title: "Color · RGB · tap to copy", value: "rgb(\((code >> 16) & 255), \((code >> 8) & 255), \(code & 255))")
+        }
+        let words = input.lowercased().split(whereSeparator: \.isWhitespace).map(String.init)
+        guard words.count == 4, words[2] == "to", let number = Double(words[0]), number.isFinite else { return nil }
+        let from = words[1], to = words[3]
+        let length: [String: Double] = ["mm":0.001, "cm":0.01, "m":1, "km":1000, "in":0.0254, "ft":0.3048, "yd":0.9144, "mi":1609.344]
+        let mass: [String: Double] = ["g":0.001, "kg":1, "oz":0.028349523125, "lb":0.45359237]
+        var value: Double?
+        if let a = length[from], let b = length[to] { value = number * a / b }
+        else if let a = mass[from], let b = mass[to] { value = number * a / b }
+        else if ["c", "f", "k"].contains(from), ["c", "f", "k"].contains(to) {
+            let c = from == "f" ? (number - 32) * 5 / 9 : from == "k" ? number - 273.15 : number
+            guard c >= -273.15 else { return nil }
+            value = to == "f" ? c * 9 / 5 + 32 : to == "k" ? c + 273.15 : c
+        }
+        guard let result = value, result.isFinite else { return nil }
+        return UtilityResult(title: "Conversion · tap to copy", value: "\(format(result)) \(to)")
+    }
+    private static func format(_ value: Double) -> String {
+        String(format: "%.10g", locale: Locale(identifier: "en_US_POSIX"), value)
+    }
+}
+// A bounded arithmetic parser, not an evaluator of scripts or arbitrary expressions.
+enum Calculator {
+    static func calculate(_ input: String) -> Double? {
+        guard input.count <= 200, input.unicodeScalars.allSatisfy({ $0.isASCII }) else { return nil }
+        var parser = Parser(bytes: Array(input.utf8))
+        guard let value = parser.expression(depth: 0), parser.finished, value.isFinite else { return nil }
+        return value
+    }
+    private struct Parser {
+        let bytes: [UInt8]
+        var index = 0
+        mutating func skip() { while index < bytes.count && [9,10,13,32].contains(bytes[index]) { index += 1 } }
+        var finished: Bool { mutating get { skip(); return index == bytes.count } }
+        mutating func take(_ byte: UInt8) -> Bool { skip(); guard index < bytes.count && bytes[index] == byte else { return false }; index += 1; return true }
+        mutating func expression(depth: Int) -> Double? {
+            guard var value = term(depth: depth) else { return nil }
+            while true {
+                if take(43) { guard let next = term(depth: depth) else { return nil }; value += next }
+                else if take(45) { guard let next = term(depth: depth) else { return nil }; value -= next }
+                else { return value }
+                guard value.isFinite else { return nil }
+            }
+        }
+        mutating func term(depth: Int) -> Double? {
+            guard var value = factor(depth: depth) else { return nil }
+            while true {
+                if take(42) { guard let next = factor(depth: depth) else { return nil }; value *= next }
+                else if take(47) { guard let next = factor(depth: depth), next != 0 else { return nil }; value /= next }
+                else { return value }
+                guard value.isFinite else { return nil }
+            }
+        }
+        mutating func factor(depth: Int) -> Double? {
+            guard depth < 24 else { return nil }
+            if take(43) { return factor(depth: depth + 1) }
+            if take(45) { return factor(depth: depth + 1).map { -$0 } }
+            if take(40) { guard let value = expression(depth: depth + 1), take(41) else { return nil }; return value }
+            skip(); let start = index
+            while index < bytes.count && ((48...57).contains(bytes[index]) || bytes[index] == 46) { index += 1 }
+            guard start < index, let value = Double(String(decoding: bytes[start..<index], as: UTF8.self)), value.isFinite else { return nil }
+            return value
+        }
     }
 }

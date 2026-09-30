@@ -4,3 +4,7 @@ DerivedData/
 xcuserdata/
 .DS_Store
 __pycache__/
+
+.build-native/
+.build-device/
+*.xcresult/
