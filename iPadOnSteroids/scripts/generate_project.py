@@ -25,7 +25,10 @@ def source_group(name, paths):
 app_group, app_sources = source_group('App', files)
 privacy_ref = obj('privacy', 'isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>";')
 privacy_build = obj('privacy-build', f'isa = PBXBuildFile; fileRef = {privacy_ref};')
-objects[app_group] = objects[app_group].replace('children = (', f'children = ({privacy_ref}, ')
+assets_ref = obj('assets', 'isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>";')
+assets_build = obj('assets-build', f'isa = PBXBuildFile; fileRef = {assets_ref};')
+
+objects[app_group] = objects[app_group].replace('children = (', f'children = ({privacy_ref}, {assets_ref}, ')
 
 tests_group, tests_sources = source_group('Tests', test_files)
 ui_group, ui_sources = source_group('UITests', ui_files)
@@ -36,6 +39,7 @@ products = obj('products', f'isa = PBXGroup; children = {array([app_product, tes
 main_group = obj('main-group', f'isa = PBXGroup; children = {array([app_group, tests_group, ui_group, products])}; sourceTree = "<group>";')
 common = 'IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; CLANG_ENABLE_MODULES = YES;'
 app_settings = '''CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = YES;
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 INFOPLIST_KEY_CFBundleDisplayName = "iPad on Steroids";
 INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -73,7 +77,7 @@ for name, sources, config, product, kind, dependencies in [
     ('test', tests_sources, test_configs, test_product, 'bundle.unit-test', [dep]),
     ('ui', ui_sources, ui_configs, ui_product, 'bundle.ui-testing', [dep])]:
     frameworks = obj(name+'frameworks', 'isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0;')
-    resources = obj(name+'resources', f'isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = {array([privacy_build]) if name == "app" else "()"}; runOnlyForDeploymentPostprocessing = 0;')
+    resources = obj(name+'resources', f'isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = {array([privacy_build, assets_build]) if name == "app" else "()"}; runOnlyForDeploymentPostprocessing = 0;')
     target_name = {'app':'iPadOnSteroids', 'test':'iPadOnSteroidsTests', 'ui':'iPadOnSteroidsUITests'}[name]
     obj(name+'-target', f'isa = PBXNativeTarget; buildConfigurationList = {config}; buildPhases = {array([sources, frameworks, resources])}; buildRules = (); dependencies = {array(dependencies) if dependencies else "()"}; name = {target_name}; productName = {target_name}; productReference = {product}; productType = "com.apple.product-type.{kind}";')
 obj('project', f'isa = PBXProject; attributes = {{ LastUpgradeCheck = 1600; BuildIndependentTargetsInParallel = YES; }}; buildConfigurationList = {project_configs}; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, Base); mainGroup = {main_group}; productRefGroup = {products}; projectDirPath = ""; projectRoot = ""; targets = {array([app_id, ident("test-target"), ident("ui-target")])};')

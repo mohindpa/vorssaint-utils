@@ -6,7 +6,7 @@ Open **`iPadOnSteroids/iPadOnSteroids.xcodeproj`** from branch `ipad-on-steroids
 
 ## What changed
 
-- **Floating controls:** expandable material island, timer actions, quick note/command access, and a floating dock with configurable favorites. Controls stay inside this app.
+- **Floating controls:** expandable Liquid Glass island (supported SDK/OS) with material/accessibility fallback, timer actions, quick note/command access, and a floating dock with configurable favorites. Controls stay inside this app.
 - **Notes:** multiple named notes, safe identity-based editing, local autosave, sharing and shelf capture. Legacy single-note backups migrate automatically.
 - **Tasks:** add/complete/delete tasks, filter completed items, confirm bulk clearing and see the next task on the dashboard.
 - **Focus:** 1–180-minute sessions, pause/resume, persisted deadlines/paused time and optional completion notifications. Timers stop ticking while paused, idle or inactive.
@@ -22,7 +22,7 @@ No account, app server, telemetry or private APIs. Device backups can include lo
 
 ## Validation and the 9.5 target
 
-A native Mac CI workflow is committed at `.github/workflows/ipad.yml`. It records Xcode/SDK versions, runs core tests, exercises native app/unit/UI tests on an available iPad simulator and builds an optimized unsigned device binary. See [VALIDATION.md](docs/VALIDATION.md) for observed results and [QUALITY.md](docs/QUALITY.md) for the evidence required to meet the **9.5/10 goal**.
+A native Mac CI workflow is committed at `.github/workflows/ipad.yml`. It records Xcode/SDK versions, runs core tests, exercises native app/unit/UI tests on baseline and Xcode 27 iPad simulators and builds an optimized unsigned device binary. See [VALIDATION.md](docs/VALIDATION.md) for observed results and [QUALITY.md](docs/QUALITY.md) for the evidence required to meet the **9.5/10 goal**.
 
 A source upgrade or passing simulator run cannot establish physical-device battery usage, every accessibility flow or compatibility with an untested OS release. Those remain explicit release gates. No signed IPA or TestFlight distribution is supplied.
 

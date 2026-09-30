@@ -144,7 +144,7 @@ struct Dashboard: View {
                     }.buttonStyle(.plain).accessibilityLabel("Open \(item.rawValue)")
                 }
                 Button { showCommand = true } label: { Image(systemName: "command").frame(width: 44, height: 44) }.accessibilityLabel("Search workspace")
-            }.padding(10).glassSurface(corner: 32).padding(.horizontal, 18).padding(.vertical, 12)
+            }.padding(10).glassSurface(corner: 32, nativeGlass: true).padding(.horizontal, 18).padding(.vertical, 12)
         }.frame(maxWidth: 820).frame(maxWidth: .infinity)
     }
     @ViewBuilder private var content: some View {
@@ -272,8 +272,8 @@ struct Dashboard: View {
     private var settings: some View {
         VStack(spacing: 20) {
             ToolCard(title: "Make it yours", icon: "slider.horizontal.3") {
-                Picker("Accent", selection: $accent) { ForEach(["Mint", "Purple", "Orange"], id: \.self) { Text($0) } }.pickerStyle(.segmented)
-                Picker("Appearance", selection: $appearance) { ForEach(["System", "Dark", "Light"], id: \.self) { Text($0) } }.pickerStyle(.segmented)
+                SettingsChoice(title: "Accent", values: ["Mint", "Purple", "Orange"], selection: $accent)
+                SettingsChoice(title: "Appearance", values: ["System", "Dark", "Light"], selection: $appearance)
                 Toggle("Show floating island", isOn: $showIsland)
                 Toggle("Show device readings", isOn: $showTelemetry)
                 Toggle("Keep screen awake while this app is active", isOn: $keepAwake)

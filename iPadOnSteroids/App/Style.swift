@@ -34,21 +34,35 @@ struct GlassSurface: ViewModifier {
     @Environment(\.colorSchemeContrast) private var contrast
     @Environment(\.colorScheme) private var scheme
     var corner: CGFloat = 26
+    var nativeGlass = false
     func body(content: Content) -> some View {
-        content
-            .background {
-                if opaque || contrast == .increased {
-                    RoundedRectangle(cornerRadius: corner).fill(Color(uiColor: .secondarySystemGroupedBackground))
-                } else {
-                    RoundedRectangle(cornerRadius: corner).fill(.regularMaterial)
-                }
-            }
+        surface(content)
             .overlay { RoundedRectangle(cornerRadius: corner).strokeBorder(scheme == .dark ? .white.opacity(0.14) : .black.opacity(0.08), lineWidth: 1) }
             .shadow(color: .black.opacity(opaque ? 0 : 0.12), radius: 18, y: 8)
     }
+    @ViewBuilder private func surface(_ content: Content) -> some View {
+        if opaque || contrast == .increased {
+            content.background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: corner))
+        } else {
+            #if compiler(>=6.2)
+            if nativeGlass {
+                if #available(iOS 26.0, *) {
+                    content.glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: corner))
+                } else {
+                    content.background(.regularMaterial, in: RoundedRectangle(cornerRadius: corner))
+                }
+            } else {
+                content.background(.regularMaterial, in: RoundedRectangle(cornerRadius: corner))
+            }
+            #else
+            content.background(.regularMaterial, in: RoundedRectangle(cornerRadius: corner))
+            #endif
+        }
+    }
 }
+
 extension View {
-    func glassSurface(corner: CGFloat = 26) -> some View { modifier(GlassSurface(corner: corner)) }
+    func glassSurface(corner: CGFloat = 26, nativeGlass: Bool = false) -> some View { modifier(GlassSurface(corner: corner, nativeGlass: nativeGlass)) }
 }
 struct ToolCard<Content: View>: View {
     var title: String
@@ -102,12 +116,29 @@ struct FloatingIsland: View {
                 }
             }
         }
-        .padding(18).frame(maxWidth: 550).glassSurface(corner: expanded ? 28 : 36)
+        .padding(18).frame(maxWidth: 550).glassSurface(corner: expanded ? 28 : 36, nativeGlass: true)
         .animation(reduceMotion ? nil : .snappy(duration: 0.22), value: expanded)
         .padding(.horizontal, 16).padding(.vertical, 8)
     }
     static func clock(_ seconds: TimeInterval) -> String {
         let remaining = max(0, Int(ceil(seconds)))
         return String(format: "%02d:%02d", remaining / 60, remaining % 60)
+    }
+}
+
+struct SettingsChoice: View {
+    let title: String
+    let values: [String]
+    @Binding var selection: String
+    @Environment(\.dynamicTypeSize) private var textSize
+    var body: some View {
+        if textSize.isAccessibilitySize {
+            Picker(title, selection: $selection) { ForEach(values, id: \.self) { Text($0) } }.pickerStyle(.menu)
+        } else {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(title).font(.caption).foregroundStyle(.secondary)
+                Picker(title, selection: $selection) { ForEach(values, id: \.self) { Text($0) } }.pickerStyle(.segmented)
+            }
+        }
     }
 }

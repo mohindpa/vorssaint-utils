@@ -5,7 +5,7 @@ let package = Package(
     platforms: [.macOS(.v13), .iOS(.v17)],
     products: [.library(name: "iPadWorkspaceCore", targets: ["iPadOnSteroids"])],
     targets: [
-        .target(name: "iPadOnSteroids", path: "App", exclude: ["Dashboard.swift", "Store.swift", "Style.swift", "WorkspaceViews.swift", "ImageTextView.swift", "iPadOnSteroidsApp.swift", "PrivacyInfo.xcprivacy"], sources: ["Core.swift"]),
+        .target(name: "iPadOnSteroids", path: "App", exclude: ["Dashboard.swift", "Store.swift", "Style.swift", "WorkspaceViews.swift", "ImageTextView.swift", "iPadOnSteroidsApp.swift", "PrivacyInfo.xcprivacy", "Assets.xcassets"], sources: ["Core.swift"]),
         .testTarget(name: "iPadWorkspaceCoreTests", dependencies: ["iPadOnSteroids"], path: "Tests")
     ]
 )

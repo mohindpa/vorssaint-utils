@@ -32,4 +32,20 @@ final class LaunchTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Review launch build"].waitForExistence(timeout: 5))
         let image = XCTAttachment(screenshot: app.screenshot()); image.name = "Task board"; image.lifetime = .keepAlways; add(image)
     }
+    func testLargeTextAndAccessibilityDescriptions() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-testing", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launch()
+        XCTAssertTrue(app.buttons["open-command"].firstMatch.waitForExistence(timeout: 10))
+        try app.performAccessibilityAudit(for: [.sufficientElementDescription, .trait])
+        let image = XCTAttachment(screenshot: app.screenshot()); image.name = "Largest accessibility text"; image.lifetime = .keepAlways; add(image)
+    }
+    func testLandscapeWorkspace() {
+        let app = launch()
+        XCUIDevice.shared.orientation = .landscapeLeft
+        defer { XCUIDevice.shared.orientation = .portrait }
+        XCTAssertTrue(app.buttons["open-command"].firstMatch.waitForExistence(timeout: 10))
+        let image = XCTAttachment(screenshot: app.screenshot()); image.name = "Landscape workspace"; image.lifetime = .keepAlways; add(image)
+    }
+
 }

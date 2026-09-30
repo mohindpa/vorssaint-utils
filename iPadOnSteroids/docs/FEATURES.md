@@ -18,4 +18,4 @@
 
 Calculator supports decimal numbers, + - * /, parentheses and unary signs, within bounded input/depth. Unit conversions support mm/cm/m/km/in/ft/yd/mi, g/kg/oz/lb, and c/f/k. Incompatible units and temperatures below absolute zero are rejected.
 
-Native materials are available on the iPadOS 17 baseline. The visual direction is floating, translucent and capsule-based; it does not rely on undocumented iPadOS 27 APIs or copy Vorssaint’s assets. Widgets, Live Activities, share extensions, global audio mixing, media editing and a Mac companion are not implemented.
+Native materials are available on the iPadOS 17 baseline. With a Swift 6.2+ SDK, floating island/dock surfaces use Liquid Glass on iPadOS 26+; older compilers/OS versions and accessibility settings use tested fallbacks. The visual direction is floating, translucent and capsule-based; it does not rely on undocumented iPadOS 27 APIs or copy Vorssaint’s assets. Widgets, Live Activities, share extensions, global audio mixing, media editing and a Mac companion are not implemented.

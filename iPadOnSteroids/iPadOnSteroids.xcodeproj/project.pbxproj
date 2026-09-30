@@ -14,10 +14,12 @@ FC8A7B0E9300947C28DADE6A = { isa = PBXFileReference; lastKnownFileType = sourcec
 1B60208BD852636FF4DB34F7 = { isa = PBXBuildFile; fileRef = FC8A7B0E9300947C28DADE6A; };
 7E96A224F12C1375FA67A72E = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "iPadOnSteroidsApp.swift"; sourceTree = "<group>"; };
 0C8E420F63C679B3D719EC72 = { isa = PBXBuildFile; fileRef = 7E96A224F12C1375FA67A72E; };
-1C48CE29E4E135EE62951B22 = { isa = PBXGroup; children = (96ED5C5789B174A01557791C, AAC9300FF486A5807840989E, 7ED60DE4443D55322EDBA9EF, D9151D6FC8856F77D82859BC, EB11F39B48389C20506133FF, 4D94723251AC3260BC83FEF4, FC8A7B0E9300947C28DADE6A, 7E96A224F12C1375FA67A72E,); path = App; sourceTree = "<group>"; };
+1C48CE29E4E135EE62951B22 = { isa = PBXGroup; children = (96ED5C5789B174A01557791C, 3685E330EC5277A9DD5661C6, AAC9300FF486A5807840989E, 7ED60DE4443D55322EDBA9EF, D9151D6FC8856F77D82859BC, EB11F39B48389C20506133FF, 4D94723251AC3260BC83FEF4, FC8A7B0E9300947C28DADE6A, 7E96A224F12C1375FA67A72E,); path = App; sourceTree = "<group>"; };
 9F0A1C765294611A0A86B6A9 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (6DBDEB1818D2B2798436CA46, 485A4D514BF258D53154F777, 46DA4F7448C3430371C496DB, D3A20BBB085EB40FE40BD174, EC75DE14395FD33C85A3BD96, 1B60208BD852636FF4DB34F7, 0C8E420F63C679B3D719EC72,); runOnlyForDeploymentPostprocessing = 0; };
 96ED5C5789B174A01557791C = { isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 A39309C4376B4D66A5739C05 = { isa = PBXBuildFile; fileRef = 96ED5C5789B174A01557791C; };
+3685E330EC5277A9DD5661C6 = { isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+716E9590E60B3AFA6E62BF18 = { isa = PBXBuildFile; fileRef = 3685E330EC5277A9DD5661C6; };
 508D386D2D550BA1443385BD = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CoreTests.swift"; sourceTree = "<group>"; };
 33765F539F08A292E8243A2B = { isa = PBXBuildFile; fileRef = 508D386D2D550BA1443385BD; };
 B7DB87CC51B4BB33A3879CF3 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StoreTests.swift"; sourceTree = "<group>"; };
@@ -37,6 +39,7 @@ FBDC4F23F93125BBEEAE800C = { isa = PBXGroup; children = (4E783A9E10D2A8ABA38CD11
 E6DE6C99132752C914FEF632 = { isa = XCBuildConfiguration; buildSettings = { IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; CLANG_ENABLE_MODULES = YES; SWIFT_OPTIMIZATION_LEVEL = "-O"; DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym"; }; name = Release; };
 862894B703A6DEDF96A9DD6C = { isa = XCConfigurationList; buildConfigurations = (89E1FD6268CC0F221A2BE178, E6DE6C99132752C914FEF632,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 E9B2E96ABC5F6856F2BE79CF = { isa = XCBuildConfiguration; buildSettings = { CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = YES;
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 INFOPLIST_KEY_CFBundleDisplayName = "iPad on Steroids";
 INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -50,6 +53,7 @@ MARKETING_VERSION = 0.2.0; CURRENT_PROJECT_VERSION = 2;
 SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SUPPORTS_MACCATALYST = NO;
  SWIFT_OPTIMIZATION_LEVEL = "-Onone"; DEBUG_INFORMATION_FORMAT = dwarf; SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG; ENABLE_TESTABILITY = YES; }; name = Debug; };
 5A8C91857F674E16E2724F47 = { isa = XCBuildConfiguration; buildSettings = { CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = YES;
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 INFOPLIST_KEY_CFBundleDisplayName = "iPad on Steroids";
 INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -82,7 +86,7 @@ BECB265224D91761C05FDA33 = { isa = XCConfigurationList; buildConfigurations = (F
 D799BAE6088A90139B415FCC = { isa = PBXContainerItemProxy; containerPortal = 98F54143AB4E86B28C3AFEE0; proxyType = 1; remoteGlobalIDString = F75109BEB4DD8800DA6B45F8; remoteInfo = iPadOnSteroids; };
 BAE932EF166B50AB877FDC6F = { isa = PBXTargetDependency; target = F75109BEB4DD8800DA6B45F8; targetProxy = D799BAE6088A90139B415FCC; };
 12384B5908BE5FE5B3301CEE = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-06F5DC629BD46AAFD46564D1 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (A39309C4376B4D66A5739C05,); runOnlyForDeploymentPostprocessing = 0; };
+06F5DC629BD46AAFD46564D1 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (A39309C4376B4D66A5739C05, 716E9590E60B3AFA6E62BF18,); runOnlyForDeploymentPostprocessing = 0; };
 F75109BEB4DD8800DA6B45F8 = { isa = PBXNativeTarget; buildConfigurationList = F37922C48DA5978D02C9E50E; buildPhases = (9F0A1C765294611A0A86B6A9, 12384B5908BE5FE5B3301CEE, 06F5DC629BD46AAFD46564D1,); buildRules = (); dependencies = (); name = iPadOnSteroids; productName = iPadOnSteroids; productReference = 4E783A9E10D2A8ABA38CD11C; productType = "com.apple.product-type.application"; };
 99C7943D90D870A50ADE9160 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 C584AE92222380FB29B6223F = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };

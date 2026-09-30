@@ -11,8 +11,13 @@ concurrency:
   cancel-in-progress: true
 jobs:
   native:
-    runs-on: macos-15
-    timeout-minutes: 30
+    name: Native / ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, xcode-27]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 40
     defaults:
       run:
         working-directory: iPadOnSteroids
@@ -60,13 +65,13 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ipad-simulator-screenshots
+          name: ipad-simulator-screenshots-${{ matrix.runner }}
           path: iPadOnSteroids/TestAttachments
           if-no-files-found: ignore
       - name: Upload native test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ipad-native-results
+          name: ipad-native-results-${{ matrix.runner }}
           path: iPadOnSteroids/TestResults.xcresult
           if-no-files-found: ignore
