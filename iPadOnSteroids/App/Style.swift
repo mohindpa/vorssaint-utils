@@ -89,8 +89,8 @@ struct FloatingIsland: View {
                     VStack(alignment: .leading, spacing: 3) {
                         Text(store.focus == nil ? "Your workspace" : store.isPaused ? "Focus paused" : "Focus session").font(.caption).foregroundStyle(.secondary)
                         if let session = store.focus {
-                            TimelineView(.periodic(from: .now, by: 1)) { context in
-                                Text(Self.clock(session.remaining(at: context.date))).font(.headline.monospacedDigit())
+                            FocusTimeline(session: session) { date in
+                                Text(Self.clock(session.remaining(at: date))).font(.headline.monospacedDigit())
                             }
                         } else { Text("Ready when you are").font(.headline) }
                     }.frame(maxWidth: .infinity, alignment: .leading)
@@ -100,7 +100,7 @@ struct FloatingIsland: View {
             }
             if expanded {
                 if let session = store.focus {
-                    TimelineView(.periodic(from: .now, by: 1)) { context in ProgressView(value: session.progress(at: context.date)).accessibilityLabel("Focus progress") }
+                    FocusTimeline(session: session) { date in ProgressView(value: session.progress(at: date)).accessibilityLabel("Focus progress") }
                     HStack {
                         Button(store.isPaused ? "Resume" : "Pause") { store.isPaused ? store.resumeFocus() : store.pauseFocus() }
                         Button("End", role: .destructive) { store.stopFocus() }
@@ -140,5 +140,14 @@ struct SettingsChoice: View {
                 Picker(title, selection: $selection) { ForEach(values, id: \.self) { Text($0) } }.pickerStyle(.segmented)
             }
         }
+    }
+}
+
+struct FocusTimeline<Content: View>: View {
+    let session: FocusSession
+    @ViewBuilder var content: (Date) -> Content
+    var body: some View {
+        if session.isPaused { content(.now) }
+        else { TimelineView(.periodic(from: .now, by: 1)) { context in content(context.date) } }
     }
 }

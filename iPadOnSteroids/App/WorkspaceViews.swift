@@ -7,10 +7,10 @@ struct FocusStudio: View {
     var body: some View {
         ToolCard(title: "Focus studio", icon: "timer") {
             if let session = store.focus {
-                TimelineView(.periodic(from: .now, by: 1)) { context in
+                FocusTimeline(session: session) { date in
                     VStack(alignment: .leading, spacing: 12) {
-                        Text(FloatingIsland.clock(session.remaining(at: context.date))).font(.system(.largeTitle, design: .rounded).monospacedDigit()).contentTransition(.numericText())
-                        ProgressView(value: session.progress(at: context.date))
+                        Text(FloatingIsland.clock(session.remaining(at: date))).font(.system(.largeTitle, design: .rounded).monospacedDigit()).contentTransition(.numericText())
+                        ProgressView(value: session.progress(at: date))
                     }
                 }
             } else { Text("Make room for deep work.").font(.title2.bold()) }
